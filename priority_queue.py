@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import time as t
 
 
 class PriorityQueue(object):
@@ -61,6 +62,7 @@ class Passenger:
         self.name = name
         self.time = time
         self.classs = classs
+        self.entered = datetime.now()
 
     def __str__(self):
         return f'{self.late_to_flight()}, {priorities[self.classs]}, {self.name}'
@@ -77,13 +79,20 @@ class Passenger:
             return False
         else:
             # check if classs is prioritised for both
-            if self.classs in priorities and other.classs in priorities:
-                return priorities[self.classs] <= priorities[other.classs]
+            if self.classs in priorities and other.classs not in priorities:
+                return True
             # check if classs is not prioritised for both
+            elif self.classs not in priorities and other.classs in priorities:
+                return False
             elif self.classs not in priorities and other.classs not in priorities:
                 return True
-            # self bias
-            return self.classs in priorities
+            else:
+                if priorities[self.classs] < priorities[other.classs]:
+                    return True
+                elif priorities[self.classs] > priorities[other.classs]:
+                    return False
+                else:
+                    return self.entered <= other.entered
 
     def late_to_flight(self, current_time=time):
         # check if to late
@@ -97,7 +106,7 @@ class Passenger:
 
 
 if __name__ == '__main__':
-    from random import shuffle
+    from random import shuffle, choice
 
     comp = lambda x, y: x > y
 
@@ -105,12 +114,12 @@ if __name__ == '__main__':
     time_late = time + timedelta(minutes=10)
     time_early = time + timedelta(minutes=60)
 
+    times = [time_early, time_late, time_too_late]
+    names = ['Daniel', 'Jacob', 'Nikolaj', 'Stephan']
     passenger_list = []
-    for x in ['Daniel', 'Jacob', 'Nikolaj', 'Stephan']:
-        passenger_list.append(Passenger(x, time_late, 'Family'))
-        passenger_list.append(Passenger(x, time_early, 'Disabled'))
-        passenger_list.append(Passenger(x, time_late, 'Disabled'))
-        passenger_list.append(Passenger(x, time_early, 'Family'))
+    for i in range(100):
+        passenger_list.append(Passenger(str(i) + '_' + choice(names), choice(times), choice(list(priorities.keys()))))
+        t.sleep(1 / 50)
 
     shuffle(passenger_list)
     queue = PriorityQueue(comparator=comp)
