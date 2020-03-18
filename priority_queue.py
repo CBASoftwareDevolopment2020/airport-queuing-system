@@ -1,3 +1,6 @@
+from datetime import datetime
+
+
 class PriorityQueue(object):
     def __init__(self, comparator: callable):
         self.items = []
@@ -7,7 +10,7 @@ class PriorityQueue(object):
     def __str__(self):
         return ' '.join([str(i) for i in self.items])
 
-    def isEmpty(self):
+    def is_empty(self):
         return len(self.items) == 0
 
     def heapify(self):
@@ -43,8 +46,6 @@ class PriorityQueue(object):
             self._heapify(data, n, prioritised, comparator)
 
 
-import datetime
-
 priorities = {
     'Disabled': 0,
     'Business class': 1,
@@ -54,7 +55,7 @@ priorities = {
 
 
 class Passenger:
-    def __init__(self, name: str, time: int, classs: str):
+    def __init__(self, name: str, time: datetime, classs: str):
         self.name = name
         self.time = time
         self.classs = classs
@@ -79,7 +80,7 @@ class Passenger:
             # self bias
             return self.classs in priorities
 
-    def late_to_flight(self, current_time=datetime.now()):
+    def late_to_flight(self, current_time: datetime = datetime.now()):
         # check if to late
         if current_time > self.time:
             return False
@@ -88,5 +89,6 @@ class Passenger:
             return True
         # otherwise in good time
         return False
+
 
 comp = lambda x, y: x > y
