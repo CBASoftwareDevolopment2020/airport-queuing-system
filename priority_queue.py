@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class PriorityQueue(object):
@@ -53,6 +53,8 @@ priorities = {
     'Monkey': 3,
 }
 
+time = datetime(2020, 3, 18, 18, 00)
+
 
 class Passenger:
     def __init__(self, name: str, time: datetime, classs: str):
@@ -60,7 +62,10 @@ class Passenger:
         self.time = time
         self.classs = classs
 
-    def __cmp__(self, other):
+    def __str__(self):
+        return f'{self.late_to_flight()}, {priorities[self.classs]}, {self.name}'
+
+    def __gt__(self, other):
         # check if same type
         if type(other) is not type(self):
             return True
@@ -80,15 +85,37 @@ class Passenger:
             # self bias
             return self.classs in priorities
 
-    def late_to_flight(self, current_time: datetime = datetime.now()):
+    def late_to_flight(self, current_time=time):
         # check if to late
         if current_time > self.time:
             return False
         # check if last call
-        if (self.time - current_time).seconds * 60 < 15:
+        if current_time + timedelta(minutes=15) >= self.time:
             return True
         # otherwise in good time
         return False
 
 
-comp = lambda x, y: x > y
+if __name__ == '__main__':
+    from random import shuffle
+
+    comp = lambda x, y: x > y
+
+    time_too_late = time - timedelta(minutes=10)
+    time_late = time + timedelta(minutes=10)
+    time_early = time + timedelta(minutes=60)
+
+    passenger_list = []
+    for x in ['Daniel', 'Jacob', 'Nikolaj', 'Stephan']:
+        passenger_list.append(Passenger(x, time_late, 'Family'))
+        passenger_list.append(Passenger(x, time_early, 'Disabled'))
+        passenger_list.append(Passenger(x, time_late, 'Disabled'))
+        passenger_list.append(Passenger(x, time_early, 'Family'))
+
+    shuffle(passenger_list)
+    queue = PriorityQueue(comparator=comp)
+    for x in passenger_list:
+        queue.enqueue(x)
+
+    for _ in range(len(passenger_list)):
+        print(queue.dequeue())
