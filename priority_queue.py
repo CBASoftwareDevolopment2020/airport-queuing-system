@@ -1,3 +1,4 @@
+from threading import Thread, Lock
 from datetime import datetime, timedelta
 import time as t
 
@@ -105,26 +106,53 @@ class Passenger:
         return False
 
 
+class ProducerThread(Thread):
+    # Function called by the producer thread
+    def run(self):
+        global queue
+        global lock
+        time_too_late = time - timedelta(minutes=10)
+        time_late = time + timedelta(minutes=10)
+        time_early = time + timedelta(minutes=60)
+
+        times = [time_early, time_late, time_too_late]
+        names = ['Daniel', 'Jacob', 'Nikolaj', 'Stephan']
+
+        i = 0
+        while True:
+            try:
+                lock.acquire()
+                queue.enqueue(Passenger(str(i) + '_' + choice(names), choice(times), choice(list(priorities.keys()))))
+                lock.release()
+                i += 1
+            except Exception as e:
+                print(e)
+                continue
+
+
+class ConsumerThread(Thread):
+    # Function called by the consumer threads
+    def run(self):
+        global queue
+        global lock
+        while True:
+            # t.sleep(1/1000)
+            try:
+                lock.acquire()
+                if not queue.is_empty():
+                    print(queue.dequeue())
+                lock.release()
+            except Exception as e:
+                print(e)
+                continue
+
+
 if __name__ == '__main__':
     from random import shuffle, choice
 
     comp = lambda x, y: x > y
-
-    time_too_late = time - timedelta(minutes=10)
-    time_late = time + timedelta(minutes=10)
-    time_early = time + timedelta(minutes=60)
-
-    times = [time_early, time_late, time_too_late]
-    names = ['Daniel', 'Jacob', 'Nikolaj', 'Stephan']
-    passenger_list = []
-    for i in range(100):
-        passenger_list.append(Passenger(str(i) + '_' + choice(names), choice(times), choice(list(priorities.keys()))))
-        t.sleep(1 / 50)
-
-    shuffle(passenger_list)
     queue = PriorityQueue(comparator=comp)
-    for x in passenger_list:
-        queue.enqueue(x)
+    lock = Lock()
 
-    for _ in range(len(passenger_list)):
-        print(queue.dequeue())
+    ProducerThread().start()
+    ConsumerThread().start()
