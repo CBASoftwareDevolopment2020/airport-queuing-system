@@ -136,7 +136,6 @@ class ConsumerThread(Thread):
         global queue
         global lock
         while True:
-            # t.sleep(1/1000)
             try:
                 lock.acquire()
                 if not queue.is_empty():
